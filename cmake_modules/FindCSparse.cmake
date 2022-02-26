@@ -1,0 +1,21 @@
+# Look for csparse; note the difference in the directory specifications!
+find_path(CSPARSE_INCLUDE_DIR NAMES cs.h
+  PATHS
+  /usr/include/suitesparse
+  /usr/include
+  /usr/local/include
+  /sw/include
+  /usr/include/ufsparse
+  PATH_SUFFIXES
+  suitesparse
+  )
+
+find_library(CSPARSE_LIBRARY NAMES cxsparse libcxsparse
+  PATHS
+  /usr/lib
+  /usr/local/lib
+  )
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(CSPARSE DEFAULT_MSG
+  CSPARSE_INCLUDE_DIR CSPARSE_LIBRARY)
