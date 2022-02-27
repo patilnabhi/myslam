@@ -18,9 +18,9 @@ include_directories("/usr/include/eigen3")
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-# # pangolin
-# find_package(Pangolin REQUIRED)
-# include_directories(${Pangolin_INCLUDE_DIRS})
+# pangolin
+find_package(Pangolin REQUIRED)
+include_directories(${Pangolin_INCLUDE_DIRS})
 
 # Sophus
 find_package(Sophus REQUIRED)
@@ -49,7 +49,7 @@ include_directories(${CSPARSE_INCLUDE_DIR})
 set(THIRD_PARTY_LIBS
         ${OpenCV_LIBS}
         ${Sophus_LIBRARIES} fmt
-#         ${Pangolin_LIBRARIES} GL GLU GLEW glut
+        ${Pangolin_LIBRARIES} GL GLU GLEW glut
         g2o_core g2o_stuff g2o_types_sba g2o_solver_csparse g2o_csparse_extension
         ${GTEST_BOTH_LIBRARIES}
         ${GLOG_LIBRARIES}

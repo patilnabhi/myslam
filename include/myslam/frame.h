@@ -30,6 +30,8 @@ struct Frame {
    public:  // data members
     Frame() {}
 
+    Frame(long id, double time_stamp, const SE3 &pose, const Mat &left);
+
     Frame(long id, double time_stamp, const SE3 &pose, const Mat &left,
           const Mat &right);
 

@@ -5,13 +5,14 @@
 #include "myslam/common_include.h"
 #include "myslam/frame.h"
 #include "myslam/map.h"
+#include "myslam/initializer.h"
 
 namespace myslam {
 
 class Backend;
 class Viewer;
 
-enum class FrontendStatus { INITING, TRACKING_GOOD, TRACKING_BAD, LOST };
+enum class FrontendStatus { NOT_INITIALIZED, INITING, TRACKING_GOOD, TRACKING_BAD, LOST };
 
 
 class Frontend {
@@ -68,6 +69,10 @@ class Frontend {
      */
     bool InsertKeyframe();
 
+    bool MonoInit();
+
+    bool FirstMonoInit();
+
     /**
      * Try init the frontend with stereo images saved in current_frame_
      * @return true if success
@@ -105,7 +110,7 @@ class Frontend {
     void SetObservationsForKeyFrame();
 
     // data
-    FrontendStatus status_ = FrontendStatus::INITING;
+    FrontendStatus status_ = FrontendStatus::NOT_INITIALIZED;
 
     Frame::Ptr current_frame_ = nullptr;  
     Frame::Ptr last_frame_ = nullptr;     
@@ -115,6 +120,8 @@ class Frontend {
     Map::Ptr map_ = nullptr;
     std::shared_ptr<Backend> backend_ = nullptr;
     // std::shared_ptr<Viewer> viewer_ = nullptr;
+
+    std::shared_ptr<Initializer> mpInitializer = nullptr;
 
     SE3 relative_motion_;  
 

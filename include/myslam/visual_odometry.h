@@ -4,7 +4,7 @@
 #include "myslam/common_include.h"
 #include "myslam/dataset.h"
 #include "myslam/frontend.h"
-// #include "myslam/viewer.h"
+#include "myslam/viewer.h"
 
 namespace myslam {
 
@@ -42,7 +42,7 @@ class VisualOdometry {
     Frontend::Ptr frontend_ = nullptr;
     Backend::Ptr backend_ = nullptr;
     Map::Ptr map_ = nullptr;
-    // Viewer::Ptr viewer_ = nullptr;
+    Viewer::Ptr viewer_ = nullptr;
 
     // dataset
     Dataset::Ptr dataset_ = nullptr;

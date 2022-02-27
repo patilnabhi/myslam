@@ -9,6 +9,7 @@
 #include "myslam/map.h"
 // #include "myslam/viewer.h"
 
+
 namespace myslam {
 
 Frontend::Frontend() {
@@ -22,8 +23,12 @@ bool Frontend::AddFrame(myslam::Frame::Ptr frame) {
     current_frame_ = frame;
 
     switch (status_) {
-        case FrontendStatus::INITING:
+        case FrontendStatus::NOT_INITIALIZED:
+            // FirstMonoInit();
             StereoInit();
+            break;
+        case FrontendStatus::INITING:
+            MonoInit();
             break;
         case FrontendStatus::TRACKING_GOOD:
         case FrontendStatus::TRACKING_BAD:
@@ -31,6 +36,7 @@ bool Frontend::AddFrame(myslam::Frame::Ptr frame) {
             break;
         case FrontendStatus::LOST:
             Reset();
+            return false;
             break;
     }
 
@@ -77,12 +83,13 @@ bool Frontend::InsertKeyframe() {
               << current_frame_->keyframe_id_;
 
     SetObservationsForKeyFrame();
+    
     DetectFeatures();  // detect new features
-
     // track in right image
     FindFeaturesInRight();
     // triangulate map points
     TriangulateNewPoints();
+
     // update backend because we have a new keyframe
     backend_->UpdateMap();
 
@@ -105,7 +112,7 @@ int Frontend::TriangulateNewPoints() {
     for (size_t i = 0; i < current_frame_->features_left_.size(); ++i) {
         if (current_frame_->features_left_[i]->map_point_.expired() &&
             current_frame_->features_right_[i] != nullptr) {
-            // 左图的特征点未关联地图点且存在右图匹配点，尝试三角化
+
             std::vector<Vec3> points{
                 camera_left_->pixel2camera(
                     Vec2(current_frame_->features_left_[i]->position_.pt.x,
@@ -224,7 +231,7 @@ int Frontend::EstimateCurrentPose() {
 }
 
 int Frontend::TrackLastFrame() {
-    // use LK flow to estimate points in the right image
+    // use LK flow to estimate points in the current image
     std::vector<cv::Point2f> kps_last, kps_current;
     for (auto &kp : last_frame_->features_left_) {
         if (kp->map_point_.lock()) {
@@ -261,9 +268,64 @@ int Frontend::TrackLastFrame() {
         }
     }
 
-    LOG(INFO) << "Find " << num_good_pts << " in the last image.";
+    LOG(INFO) << "Tracked " << num_good_pts << " in the last image.";
     return num_good_pts;
 }
+
+bool Frontend::FirstMonoInit() {
+    int num_features_left = DetectFeatures();
+    if (num_features_left <= 100) return false;
+
+    mpInitializer = std::make_shared<Initializer>(camera_left_->K(),
+                                                    1.0f, 200);
+
+    status_ = FrontendStatus::INITING;
+
+    return true;
+}
+
+bool Frontend::MonoInit() {
+    std::vector<cv::Point2f> kps_last, kps_current;
+    for (auto &kp : last_frame_->features_left_) {
+        kps_last.push_back(kp->position_.pt);
+        kps_current.push_back(kp->position_.pt);
+    }
+
+    std::vector<uchar> status;
+    Mat error;
+    cv::calcOpticalFlowPyrLK(
+        last_frame_->left_img_, current_frame_->left_img_, kps_last,
+        kps_current, status, error, cv::Size(11, 11), 3,
+        cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30,
+                         0.01),
+        cv::OPTFLOW_USE_INITIAL_FLOW);
+
+    //getting rid of points for which the KLT tracking failed or those who have gone outside the frame
+    int indexCorrection = 0;
+    for( int i=0; i<status.size(); i++)
+    {
+        auto pt = kps_current.at(i- indexCorrection);
+        if ((status.at(i) == 0) || (pt.x<0) || (pt.y<0))   {
+            if((pt.x<0) || (pt.y<0)) {
+                status.at(i) = 0;
+            }
+
+            kps_last.erase (kps_last.begin() + i - indexCorrection);
+            kps_current.erase (kps_current.begin() + i - indexCorrection);
+            indexCorrection++;
+        }
+    }
+
+    cv::Mat R, t;
+    mpInitializer->initialize(kps_last, kps_current, R, t);
+
+    LOG(INFO) << "rotation: " << R;
+    LOG(INFO) << "translation: " << t;
+
+    return true;
+}
+
+
 
 bool Frontend::StereoInit() {
     int num_features_left = DetectFeatures();
