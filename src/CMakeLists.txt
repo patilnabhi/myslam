@@ -7,7 +7,7 @@ add_library(myslam SHARED
         feature.cpp
         frontend.cpp
         backend.cpp
-#         viewer.cpp
+        viewer.cpp
         visual_odometry.cpp
         dataset.cpp
         initializer.cpp)

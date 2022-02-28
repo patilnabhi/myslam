@@ -6,6 +6,7 @@
 #include "myslam/frame.h"
 #include "myslam/map.h"
 #include "myslam/initializer.h"
+#include "myslam/viewer.h"
 
 namespace myslam {
 
@@ -29,7 +30,7 @@ class Frontend {
 
     void SetBackend(std::shared_ptr<Backend> backend) { backend_ = backend; }
 
-    // void SetViewer(std::shared_ptr<Viewer> viewer) { viewer_ = viewer; }
+    void SetViewer(std::shared_ptr<Viewer> viewer) { viewer_ = viewer; }
 
     FrontendStatus GetStatus() const { return status_; }
 
@@ -119,7 +120,7 @@ class Frontend {
 
     Map::Ptr map_ = nullptr;
     std::shared_ptr<Backend> backend_ = nullptr;
-    // std::shared_ptr<Viewer> viewer_ = nullptr;
+    std::shared_ptr<Viewer> viewer_ = nullptr;
 
     std::shared_ptr<Initializer> mpInitializer = nullptr;
 

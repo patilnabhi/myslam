@@ -7,7 +7,7 @@
 #include "myslam/frontend.h"
 #include "myslam/g2o_types.h"
 #include "myslam/map.h"
-// #include "myslam/viewer.h"
+#include "myslam/viewer.h"
 
 
 namespace myslam {
@@ -66,7 +66,7 @@ bool Frontend::Track() {
     InsertKeyframe();
     relative_motion_ = current_frame_->Pose() * last_frame_->Pose().inverse();
 
-    // if (viewer_) viewer_->AddCurrentFrame(current_frame_);
+    if (viewer_) viewer_->AddCurrentFrame(current_frame_);
     return true;
 }
 
@@ -93,7 +93,7 @@ bool Frontend::InsertKeyframe() {
     // update backend because we have a new keyframe
     backend_->UpdateMap();
 
-    // if (viewer_) viewer_->UpdateMap();
+    if (viewer_) viewer_->UpdateMap();
 
     return true;
 }
@@ -337,10 +337,10 @@ bool Frontend::StereoInit() {
     bool build_map_success = BuildInitMap();
     if (build_map_success) {
         status_ = FrontendStatus::TRACKING_GOOD;
-        // if (viewer_) {
-        //     viewer_->AddCurrentFrame(current_frame_);
-        //     viewer_->UpdateMap();
-        // }
+        if (viewer_) {
+            viewer_->AddCurrentFrame(current_frame_);
+            viewer_->UpdateMap();
+        }
         return true;
     }
     return false;
